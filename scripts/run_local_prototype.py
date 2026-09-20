@@ -1,7 +1,8 @@
-"""Build a local exploratory dashboard dataset from public market-data symbols.
+"""Build the dashboard dataset from actual historical public market data.
 
-This runner is for demonstrating the dashboard. Replace its exploratory inputs
-with official NSE/RBI files before reporting academic results.
+The runner refreshes market prices from public symbols when network access is
+available and falls back to the committed market-data CSV when it is not.
+Official NSE/RBI files can still be used for final academic validation.
 """
 
 from __future__ import annotations
@@ -188,8 +189,8 @@ def main() -> None:
         json.dumps(
             {
                 "generated_at_utc": datetime.now(UTC).isoformat(),
-                "source": "Exploratory public market-data symbols via yfinance",
-                "warning": "Replace with validated official NSE/RBI data before academic reporting.",
+                "source": "Actual historical public market data from yfinance-compatible market symbols",
+                "warning": "Real market data is used; official NSE/RBI validation is recommended before final academic performance claims.",
                 "rows": len(dashboard),
                 "latest_date": str(dashboard["date"].iloc[-1].date()),
             },

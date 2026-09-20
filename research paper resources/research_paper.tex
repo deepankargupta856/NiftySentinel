@@ -35,7 +35,7 @@
 \begin{abstract}
 Financial stress monitoring is a practical problem for market participants, risk managers, and policy observers because stress episodes usually emerge through several interacting channels rather than through price movement alone. This paper presents \textit{NIFTY-Sentinel}, an explainable machine learning framework designed to estimate the probability of elevated Indian equity market stress. The system does not attempt to predict exact NIFTY 50 prices. Instead, it frames the task as a forward-looking classification problem: given information available up to a trading date, estimate whether a stress condition is likely over a short future horizon. The framework combines market state indicators, volatility, drawdown, risk-appetite proxies, cross-asset connectedness, and latent regime estimates. It then applies time-series-aware supervised learning, ablation analysis, and model explanation to produce a dashboard-ready stress probability, warning level, regime label, and driver summary.
 
-The prototype uses exploratory public market data for NIFTY 50, India VIX, USD/INR, gold, Brent crude, S\&P 500, and US VIX, covering 4,105 observations through 18 September 2026. In walk-forward validation, the Random Forest prototype achieves mean PR AUC of 0.422, while the Logistic Regression benchmark achieves mean PR AUC of 0.400. Ablation results suggest that adding risk-appetite and connectedness layers improves the market-only baseline, although the observed gains remain modest and must be revalidated with official NSE and RBI data before final academic claims are made. The final output is deployed as both a Streamlit dashboard and a static GitHub Pages dashboard. The contribution of the project is a transparent end-to-end research pipeline for stress monitoring, not a trading signal or causal model.
+The project uses actual historical public-market data for NIFTY 50, India VIX, USD/INR, gold, Brent crude, S\&P 500, and US VIX, covering 4,105 observations through 18 September 2026. In walk-forward validation, the Random Forest prototype achieves mean PR AUC of 0.422, while the Logistic Regression benchmark achieves mean PR AUC of 0.400. Ablation results suggest that adding risk-appetite and connectedness layers improves the market-only baseline, although the observed gains remain modest and must be revalidated with official NSE and RBI data before final academic claims are made. The final output is deployed as both a Streamlit dashboard and a static GitHub Pages dashboard. The contribution of the project is a transparent end-to-end research pipeline for stress monitoring, not a trading signal or causal model.
 \end{abstract}
 
 \textbf{Keywords:} financial stress, NIFTY 50, explainable machine learning, regime detection, Random Forest, Hidden Markov Model, SHAP, connectedness, risk dashboard
@@ -84,7 +84,7 @@ Three methodological ideas are especially relevant to this project. First, laten
 
 \subsection{Prototype Data Sources}
 
-The current implementation uses exploratory public-market data downloaded through a market-data interface. The prototype includes:
+The current implementation uses actual historical public-market data downloaded through a market-data interface and committed with the repository. The prototype includes:
 
 \begin{itemize}
     \item NIFTY 50 close;
@@ -96,11 +96,11 @@ The current implementation uses exploratory public-market data downloaded throug
     \item US VIX.
 \end{itemize}
 
-The local prototype contains 4,105 aligned observations and currently runs through 18 September 2026. These inputs are sufficient to demonstrate the pipeline and dashboard. For a final academic submission, the exploratory inputs should be replaced or verified against official NSE and RBI sources. The project repository includes a separate official-data import path for files such as \texttt{nifty50\_nse.csv}, \texttt{india\_vix\_nse.csv}, \texttt{nifty\_bank\_nse.csv}, and \texttt{gsec\_10y\_rbi.csv}.
+The local dataset contains 4,105 aligned observations and currently runs through 18 September 2026. These are real historical market observations from public symbols and are used throughout the pipeline and dashboard. For a final academic submission, the public-market inputs should be verified against official NSE and RBI sources where possible. The project repository includes a separate official-data import path for files such as \texttt{nifty50\_nse.csv}, \texttt{india\_vix\_nse.csv}, \texttt{nifty\_bank\_nse.csv}, and \texttt{gsec\_10y\_rbi.csv}.
 
 \subsection{Data Governance and Limitations}
 
-The distinction between exploratory and official data is important. The figures and metrics in this paper demonstrate the working research pipeline. They should not be interpreted as final official findings until the official data path is populated and the notebooks are rerun. This limitation is not a weakness of the design; it is a necessary safeguard against unsupported financial claims.
+The distinction between public-market data and official exchange or central-bank archives is important. The figures and metrics in this paper are computed from actual historical public-market data. They should not be interpreted as official NSE/RBI-verified findings until the official data path is populated and the notebooks are rerun. This limitation is not a weakness of the design; it is a necessary safeguard against unsupported financial claims.
 
 \section{Feature Engineering}
 
@@ -141,7 +141,7 @@ Figure~\ref{fig:return_correlation} presents the return correlation heatmap acro
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.78\textwidth]{figures/eda_return_correlation_heatmap.png}
-\caption{Return correlation heatmap for the exploratory market variables. Stronger absolute correlations indicate channels through which market stress may propagate across assets.}
+\caption{Return correlation heatmap for the actual historical market variables. Stronger absolute correlations indicate channels through which market stress may propagate across assets.}
 \label{fig:return_correlation}
 \end{figure}
 
@@ -304,7 +304,7 @@ The strongest practical value of NIFTY-Sentinel is its end-to-end structure. A u
 The project has several limitations.
 
 \begin{enumerate}
-    \item The current prototype uses exploratory public-market data rather than fully validated official NSE and RBI data.
+    \item The current project uses actual historical public-market data, but it has not yet been fully cross-validated against official NSE and RBI archives.
     \item The stress label is a modelling construct and should be tested against alternative definitions.
     \item Thresholds for warning levels are simple and require calibration for real institutional use.
     \item The model uses historical market proxies and does not include macroeconomic announcements, liquidity microstructure, news sentiment, or option-implied distribution measures beyond volatility proxies.
@@ -318,7 +318,7 @@ These limitations should be addressed before presenting the system as a final op
 Several extensions would strengthen the project.
 
 \begin{itemize}
-    \item Replace exploratory data with official NSE and RBI data and rerun all notebooks.
+    \item Cross-validate the public-market dataset against official NSE and RBI data and rerun all notebooks.
     \item Add Bank NIFTY, sectoral indices, bond yields, and volume-based liquidity features.
     \item Calibrate warning thresholds using cost-sensitive evaluation.
     \item Add probability calibration methods such as isotonic regression or Platt scaling.
@@ -353,3 +353,4 @@ Schwert, G. W. (1989). Why does stock market volatility change over time? \texti
 \end{thebibliography}
 
 \end{document}
+

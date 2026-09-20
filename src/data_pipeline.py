@@ -20,7 +20,7 @@ def combine_preferred_sources(
     official_path: str | Path | None = None,
     exploratory_path: str | Path | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Prefer official values over exploratory values and expose field-level provenance.
+    """Prefer official values over public-market values and expose provenance.
 
     The returned provenance table records the chosen source for every populated
     field and date. It does not impute missing market observations.
@@ -31,7 +31,7 @@ def combine_preferred_sources(
     official = _read_dated_csv(official_path) if official_path.exists() else pd.DataFrame()
     exploratory = _read_dated_csv(exploratory_path) if exploratory_path.exists() else pd.DataFrame()
     if official.empty and exploratory.empty:
-        raise FileNotFoundError("No official or exploratory market-data file was found.")
+        raise FileNotFoundError("No official or public-market data file was found.")
 
     all_columns = sorted(set(official.columns).union(exploratory.columns))
     full_index = official.index.union(exploratory.index).sort_values()
@@ -43,7 +43,7 @@ def combine_preferred_sources(
         exploratory_values = exploratory[column].reindex(full_index) if column in exploratory else pd.Series(index=full_index, dtype="float64")
         canonical[column] = official_values.combine_first(exploratory_values)
         provenance[column] = pd.Series(pd.NA, index=full_index, dtype="string")
-        provenance.loc[exploratory_values.notna(), column] = "exploratory"
+        provenance.loc[exploratory_values.notna(), column] = "public_market"
         provenance.loc[official_values.notna(), column] = "official"
 
     canonical.index.name = "date"

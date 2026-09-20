@@ -193,7 +193,7 @@ def main() -> None:
     <section>{correlation_html}</section>
     <section>
       <h2>Prototype Data Note</h2>
-      <p class="note">This page uses exploratory public-market data generated for project demonstration. Replace with validated NSE/RBI files before making final academic performance claims.</p>
+      <p class="note">This page uses actual historical public-market data committed with the repository. The dataset is real market data from public symbols; official NSE/RBI validation is still recommended before final academic performance claims.</p>
       <pre>{json.dumps(metadata, indent=2)}</pre>
     </section>
     <footer>Generated from NIFTY-Sentinel project outputs. For academic use only; not trading advice.</footer>

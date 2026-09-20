@@ -29,7 +29,7 @@ def localize_cell(source: str, project_root: Path) -> str:
         "elif raw_fallback_path is not None and raw_fallback_path.exists():\n"
         "    prices = pd.read_csv(raw_fallback_path, parse_dates=['date']).set_index('date').sort_index()\n"
         "else:\n"
-        "    raise FileNotFoundError('No canonical, master, or exploratory market-data file is available.')",
+        "    raise FileNotFoundError('No canonical, master, or committed public-market data file is available.')",
     )
     source = source.replace(
         "imputed = final_model.named_steps['imputer'].transform(dataset[full_features])",
@@ -43,7 +43,7 @@ def localize_cell(source: str, project_root: Path) -> str:
     )
     source = source.replace(
         "raise ValueError(f'Missing core fields: {missing}. Complete 01b_official_data_import.ipynb before modelling.')",
-        "print(f'Local execution warning: missing official-only core fields: {missing}. Continuing with exploratory public-market proxies.')",
+        "print(f'Local execution warning: missing official-only core fields: {missing}. Continuing with actual historical public-market data.')",
     )
     if "google.colab" in source:
         return (
@@ -77,7 +77,7 @@ def prepare_notebook_for_local_execution(notebook: nbformat.NotebookNode, notebo
                 "import os, subprocess, sys\n"
                 f"os.chdir(r'{project_root}')\n"
                 "subprocess.run([sys.executable, 'scripts/run_local_prototype.py'], check=True)\n"
-                "print('Local execution: refreshed exploratory market data and dashboard exports.')\n"
+                "print('Local execution: refreshed actual historical public-market data and dashboard exports.')\n"
             )
         ]
         return

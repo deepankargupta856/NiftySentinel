@@ -188,7 +188,7 @@ def render_model_explainability(data: pd.DataFrame) -> None:
     if rows:
         drivers = pd.DataFrame(rows).sort_values("importance", ascending=True)
         st.plotly_chart(
-            px.bar(drivers, x="importance", y="feature", orientation="h", title="Random Forest feature importance used by the live prototype"),
+            px.bar(drivers, x="importance", y="feature", orientation="h", title="Random Forest feature importance from actual historical market data"),
             width="stretch",
         )
 
@@ -228,12 +228,15 @@ def render_method(data: pd.DataFrame) -> None:
         "This dashboard follows the initial NIFTY-Sentinel documentation: it is an explainable early-warning "
         "system for stress conditions, not a NIFTY price predictor or trading system."
     )
-    st.subheader("Live prototype status")
+    st.subheader("Live market data status")
     st.write(f"Rows loaded: {len(data):,}. Date range: {data['date'].min().date()} to {data['date'].max().date()}.")
     if METADATA_PATH.exists():
         st.code(METADATA_PATH.read_text(encoding="utf-8"), language="json")
     st.subheader("Validation reminder")
-    st.write("Final academic reporting should use official NSE/RBI inputs and walk-forward evaluation before making performance claims.")
+    st.write(
+        "The dashboard uses actual historical public-market data committed with the repository. "
+        "Official NSE/RBI validation is still recommended before final academic performance claims."
+    )
 
 
 st.set_page_config(page_title="NIFTY-Sentinel", page_icon="N", layout="wide")

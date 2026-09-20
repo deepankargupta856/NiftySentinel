@@ -1,7 +1,7 @@
 {
-  "generated_at_utc": "2026-09-20T16:14:39.989065+00:00",
-  "source": "Exploratory public market-data symbols via yfinance",
-  "warning": "Replace with validated official NSE/RBI data before academic reporting.",
+  "generated_at_utc": "2026-09-20T16:48:49.353655+00:00",
+  "source": "Actual historical public market data from yfinance-compatible market symbols",
+  "warning": "Real market data is used; official NSE/RBI validation is recommended before final academic performance claims.",
   "rows": 4105,
   "latest_date": "2026-09-18"
 }
