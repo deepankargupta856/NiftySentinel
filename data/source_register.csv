@@ -1,0 +1,6 @@
+dataset,variable_family,preferred_source,frequency,coverage,notes
+NSE historical indices,NIFTY 50 and sector indices,NSE historical reports,Daily,2010 onward,Record download date and file name
+India VIX,Implied volatility,NSE historical reports,Daily,Subject to availability,Use close value
+Government securities yield,Indian rates,RBI DBIE,Daily or weekly,Subject to availability,Record selected maturity and release timing
+USD INR,FX risk proxy,Documented market-data provider,Daily,2010 onward,Document symbol and timezone
+Gold and global controls,External risk proxy,Documented market-data provider,Daily,2010 onward,Document symbol and timezone
