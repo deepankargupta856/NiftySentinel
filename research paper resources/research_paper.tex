@@ -1,0 +1,355 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{float}
+\usepackage{xcolor}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+\onehalfspacing
+
+\title{\textbf{NIFTY-Sentinel: An Explainable Machine Learning Framework for Early Warning of Indian Equity Market Stress}}
+\author{Deepankar Gupta}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Financial stress monitoring is a practical problem for market participants, risk managers, and policy observers because stress episodes usually emerge through several interacting channels rather than through price movement alone. This paper presents \textit{NIFTY-Sentinel}, an explainable machine learning framework designed to estimate the probability of elevated Indian equity market stress. The system does not attempt to predict exact NIFTY 50 prices. Instead, it frames the task as a forward-looking classification problem: given information available up to a trading date, estimate whether a stress condition is likely over a short future horizon. The framework combines market state indicators, volatility, drawdown, risk-appetite proxies, cross-asset connectedness, and latent regime estimates. It then applies time-series-aware supervised learning, ablation analysis, and model explanation to produce a dashboard-ready stress probability, warning level, regime label, and driver summary.
+
+The prototype uses exploratory public market data for NIFTY 50, India VIX, USD/INR, gold, Brent crude, S\&P 500, and US VIX, covering 4,105 observations through 18 September 2026. In walk-forward validation, the Random Forest prototype achieves mean PR AUC of 0.422, while the Logistic Regression benchmark achieves mean PR AUC of 0.400. Ablation results suggest that adding risk-appetite and connectedness layers improves the market-only baseline, although the observed gains remain modest and must be revalidated with official NSE and RBI data before final academic claims are made. The final output is deployed as both a Streamlit dashboard and a static GitHub Pages dashboard. The contribution of the project is a transparent end-to-end research pipeline for stress monitoring, not a trading signal or causal model.
+\end{abstract}
+
+\textbf{Keywords:} financial stress, NIFTY 50, explainable machine learning, regime detection, Random Forest, Hidden Markov Model, SHAP, connectedness, risk dashboard
+
+\section{Introduction}
+
+Financial markets frequently enter unstable states before a full crisis becomes obvious in headline index levels. In such periods, returns become more volatile, drawdowns deepen, cross-asset correlations rise, currency pressure can increase, and investor risk appetite can deteriorate. A monitoring system that uses only the level of the NIFTY 50 index may therefore miss important warning signs. The motivation behind NIFTY-Sentinel is to combine several market stress layers into one interpretable early-warning framework.
+
+The project is designed around one main research question:
+
+\begin{quote}
+Can an explainable machine learning system provide a useful early-warning estimate of Indian equity market stress by combining market state, risk appetite, volatility, connectedness, and regime information?
+\end{quote}
+
+This question is deliberately different from the common task of index price prediction. The objective is not to forecast whether the NIFTY 50 will close at a specific level tomorrow. Instead, the objective is to estimate the probability that future market conditions will be stressful. This framing is more appropriate for decision support because risk managers and students of financial instability usually need a graded warning signal rather than a single point forecast.
+
+The implemented system follows the initial project design: data collection, feature engineering, exploratory analysis, latent regime modelling, connectedness estimation, supervised stress classification, ablation analysis, explainability, and dashboard deployment. The system produces three user-facing outputs:
+
+\begin{enumerate}
+    \item a continuous stress probability;
+    \item a discrete warning level, classified as Normal, Elevated, or Severe;
+    \item an explanation layer showing regimes, feature importance, and visual evidence.
+\end{enumerate}
+
+\section{Research Objectives}
+
+The project has five objectives.
+
+\begin{enumerate}
+    \item Construct a reproducible data pipeline for Indian market stress monitoring.
+    \item Engineer interpretable stress indicators from price, volatility, currency, commodity, and global risk proxies.
+    \item Detect latent market regimes using unsupervised time-series methods.
+    \item Train and validate supervised models using walk-forward evaluation rather than random train-test splitting.
+    \item Present the output through a dashboard that emphasizes interpretation and visual diagnosis.
+\end{enumerate}
+
+These objectives shape the full research design. The resulting paper therefore evaluates not only prediction metrics, but also whether the system is transparent enough to support disciplined interpretation.
+
+\section{Related Work}
+
+Financial stress measurement has a long tradition in empirical finance. Traditional approaches often rely on composite indices built from spreads, volatility, liquidity, and macro-financial variables. Machine learning approaches extend this idea by allowing nonlinear relationships between indicators and stress outcomes. However, financial time series impose constraints that are sometimes ignored in ordinary machine learning workflows. Most importantly, validation must respect time order, feature construction must avoid look-ahead bias, and performance must be interpreted against class imbalance.
+
+Three methodological ideas are especially relevant to this project. First, latent regime models such as Hidden Markov Models can represent unobserved market states that differ in volatility and return behavior. Second, ensemble classifiers such as Random Forests can capture nonlinear interactions between volatility, drawdown, and cross-asset features. Third, explanation tools such as SHAP and feature importance can help translate model behavior into interpretable drivers. NIFTY-Sentinel combines these ideas into one applied pipeline.
+
+\section{Data}
+
+\subsection{Prototype Data Sources}
+
+The current implementation uses exploratory public-market data downloaded through a market-data interface. The prototype includes:
+
+\begin{itemize}
+    \item NIFTY 50 close;
+    \item India VIX;
+    \item USD/INR exchange rate;
+    \item gold futures;
+    \item Brent crude oil;
+    \item S\&P 500;
+    \item US VIX.
+\end{itemize}
+
+The local prototype contains 4,105 aligned observations and currently runs through 18 September 2026. These inputs are sufficient to demonstrate the pipeline and dashboard. For a final academic submission, the exploratory inputs should be replaced or verified against official NSE and RBI sources. The project repository includes a separate official-data import path for files such as \texttt{nifty50\_nse.csv}, \texttt{india\_vix\_nse.csv}, \texttt{nifty\_bank\_nse.csv}, and \texttt{gsec\_10y\_rbi.csv}.
+
+\subsection{Data Governance and Limitations}
+
+The distinction between exploratory and official data is important. The figures and metrics in this paper demonstrate the working research pipeline. They should not be interpreted as final official findings until the official data path is populated and the notebooks are rerun. This limitation is not a weakness of the design; it is a necessary safeguard against unsupported financial claims.
+
+\section{Feature Engineering}
+
+The feature set is organized into four conceptual layers. Table~\ref{tab:feature_layers} summarizes the design.
+
+\begin{table}[H]
+\centering
+\caption{Feature layers used in NIFTY-Sentinel}
+\label{tab:feature_layers}
+\begin{tabular}{p{0.23\textwidth} p{0.34\textwidth} p{0.32\textwidth}}
+\toprule
+\textbf{Layer} & \textbf{Examples} & \textbf{Interpretation} \\
+\midrule
+Market state & log return, 20-day momentum, 60-day drawdown & Measures the direction and depth of equity market movement. \\
+Volatility & 5-day, 20-day, and 60-day rolling volatility & Captures short-term and medium-term instability. \\
+Risk appetite & India VIX change, USD/INR return, gold return & Represents risk aversion, currency pressure, and defensive asset demand. \\
+Connectedness & rolling mean absolute cross-asset correlation & Detects whether assets are moving together during stress. \\
+Regime & HMM latent state & Summarizes unobserved market conditions. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The stress target is constructed as a forward-looking label over a short horizon. The label is based on future adverse movement and volatility conditions, while the cutoff is estimated from historical information available before the prediction date. This design reduces look-ahead bias compared with a label that uses future information to define both the event and the threshold.
+
+\section{Exploratory Data Analysis}
+
+Exploratory data analysis is used to understand whether the raw market features behave consistently with known stress behavior. Figure~\ref{fig:eda_drawdown_volatility} shows the NIFTY 50 close, 60-day drawdown, and 20-day rolling volatility. The figure demonstrates why a stress system should include more than price level. The index can recover in level while drawdown and volatility still contain information about market fragility.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/eda_nifty_drawdown_volatility.png}
+\caption{NIFTY 50 close, drawdown, and volatility. The figure shows that stress is not only a price-level phenomenon; volatility and drawdown capture different aspects of market instability.}
+\label{fig:eda_drawdown_volatility}
+\end{figure}
+
+Figure~\ref{fig:return_correlation} presents the return correlation heatmap across the selected market proxies. Correlation analysis is useful because systemic stress often appears as a rise in common movement across otherwise distinct assets. This motivates the connectedness layer used later in the modelling pipeline.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/eda_return_correlation_heatmap.png}
+\caption{Return correlation heatmap for the exploratory market variables. Stronger absolute correlations indicate channels through which market stress may propagate across assets.}
+\label{fig:return_correlation}
+\end{figure}
+
+\section{Methodology}
+
+\subsection{Regime Detection}
+
+The project uses a Gaussian Hidden Markov Model with three latent states. The model is trained on standardized market-state features, including return, volatility, drawdown, India VIX change, and USD/INR return. The purpose of the HMM is not to create a final label by itself, but to add a regime feature that summarizes market context.
+
+Figure~\ref{fig:hmm_regimes} plots the NIFTY 50 with inferred regimes. Visually, the regimes separate periods with different volatility and drawdown behavior. Such states are useful for the supervised model because the same return shock may have different implications depending on the prevailing regime.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/hmm_regimes_nifty.png}
+\caption{NIFTY 50 with HMM latent regimes. The regime layer gives the supervised model a compact representation of changing market conditions.}
+\label{fig:hmm_regimes}
+\end{figure}
+
+\subsection{Connectedness}
+
+Connectedness is measured with a 60-day rolling mean absolute cross-asset correlation. The intuition is that markets often become more synchronized during stress. When correlations rise across equity, currency, commodity, and global risk proxies, diversification benefits may decline and stress can spread more easily.
+
+Figure~\ref{fig:connectedness} shows the rolling connectedness measure. Peaks in this figure indicate periods when cross-asset co-movement became unusually strong. In the NIFTY-Sentinel dashboard, this measure is displayed alongside stress probability so that users can evaluate whether a warning is supported by broader market synchronization.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/rolling_connectedness.png}
+\caption{Rolling 60-day mean absolute cross-asset correlation. Higher values indicate stronger market-wide co-movement and potential systemic stress.}
+\label{fig:connectedness}
+\end{figure}
+
+\subsection{Supervised Learning}
+
+The supervised classification task estimates the probability of future stress. Two model families are used:
+
+\begin{enumerate}
+    \item Logistic Regression, included as a transparent linear benchmark.
+    \item Random Forest, included as a nonlinear ensemble model capable of capturing interactions.
+\end{enumerate}
+
+Missing values are handled through median imputation inside modelling pipelines. The evaluation uses time-series splits. This is essential because random shuffling would allow later observations to influence earlier train-test comparisons, creating an unrealistic validation setting.
+
+\subsection{Warning-Level Mapping}
+
+The continuous stress probability is converted into three warning bands:
+
+\begin{equation}
+\text{Warning} =
+\begin{cases}
+\text{Normal}, & p < 0.30 \\
+\text{Elevated}, & 0.30 \leq p < 0.60 \\
+\text{Severe}, & p \geq 0.60
+\end{cases}
+\end{equation}
+
+These thresholds are simple and interpretable. In a production environment, they should be calibrated against user-specific costs of false alarms and missed stress events.
+
+\section{Results}
+
+\subsection{Walk-Forward Model Performance}
+
+Table~\ref{tab:model_results} reports the average walk-forward performance of the two supervised models. Random Forest has a slightly higher mean PR AUC than Logistic Regression, while ROC AUC is similar. PR AUC is especially relevant because stress events are less frequent than normal periods.
+
+\begin{table}[H]
+\centering
+\caption{Mean walk-forward performance}
+\label{tab:model_results}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Model} & \textbf{Mean ROC AUC} & \textbf{Mean PR AUC} \\
+\midrule
+Logistic Regression & 0.740 & 0.400 \\
+Random Forest & 0.734 & 0.422 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The result should be interpreted cautiously. The prototype shows that the nonlinear model is useful, but not overwhelmingly superior. This is common in financial stress prediction because the signal is noisy and regime-dependent. A valuable dashboard should therefore show probability and explanatory context rather than only a binary model output.
+
+\subsection{Ablation Study}
+
+The ablation study evaluates whether each information layer contributes to the stress classifier. Table~\ref{tab:ablation} summarizes the average results.
+
+\begin{table}[H]
+\centering
+\caption{Mean ablation results by information layer}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Configuration} & \textbf{PR AUC} & \textbf{Precision} & \textbf{Recall} \\
+\midrule
+Market baseline & 0.400 & 0.459 & 0.348 \\
+Market plus risk appetite & 0.413 & 0.492 & 0.350 \\
+Market plus risk and liquidity & 0.413 & 0.492 & 0.350 \\
+Market plus risk and connectedness & 0.419 & 0.513 & 0.355 \\
+Full NIFTY-Sentinel & 0.420 & 0.508 & 0.343 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:ablation} visualizes the same ablation comparison. The market-only baseline is improved by adding the risk-appetite and connectedness layers. The full model has the highest PR AUC, although the improvement is modest. This supports the central design principle of the project: stress monitoring should combine several interpretable channels, but added complexity must be justified empirically.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/ablation_pr_auc.png}
+\caption{Walk-forward PR AUC by information layer. The ablation study shows that risk-appetite and connectedness information improve the market baseline in the prototype.}
+\label{fig:ablation}
+\end{figure}
+
+\subsection{Stress Probability Timeline}
+
+Figure~\ref{fig:stress_timeline} shows the model's predicted stress probability over time. The plot is the core output of the system because it transforms many features into a single interpretable warning series. The horizontal thresholds map the probability into Normal, Elevated, and Severe bands.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/stress_probability_timeline.png}
+\caption{Predicted market-stress probability timeline. The probability series provides the dashboard's primary early-warning signal.}
+\label{fig:stress_timeline}
+\end{figure}
+
+In the latest dashboard export, the final available date is 18 September 2026. The latest stress probability is approximately 0.137, corresponding to the Normal warning band. Across the full prototype sample, the dashboard records 2,691 Normal observations, 782 Elevated observations, and 632 Severe observations.
+
+\subsection{Explainability}
+
+Explainability is important because a black-box warning is difficult to trust in a financial setting. The project therefore includes feature-importance and SHAP-style explanation outputs. Figure~\ref{fig:shap} shows the feature summary plot generated by the explainability notebook.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/shap_feature_summary.png}
+\caption{SHAP feature summary for the full NIFTY-Sentinel model. The plot explains which features most strongly influence the stress classifier across the evaluated sample.}
+\label{fig:shap}
+\end{figure}
+
+The final dashboard export identifies volatility, drawdown, regime, and connectedness features among the leading model drivers. This is consistent with the research design: stress should be explained by market instability, loss depth, changing regimes, and cross-asset synchronization rather than by price level alone.
+
+\section{Dashboard Implementation}
+
+The dashboard is implemented in Streamlit and also exported as a static GitHub Pages version. The dashboard contains the following sections:
+
+\begin{itemize}
+    \item executive monitor with stress probability, warning level, NIFTY close, regime, and connectedness;
+    \item market layers with volatility, drawdown, return, momentum, and connectedness charts;
+    \item risk appetite view using India VIX, USD/INR, and gold proxies;
+    \item connectedness heatmap and strongest cross-asset correlation links;
+    \item model explainability using feature-importance and warning-band diagnostics;
+    \item historical case studies for 2013, 2018, 2020, and 2022;
+    \item methodology notes and data warnings.
+\end{itemize}
+
+The dashboard is important because the project is not only a modelling exercise. The final output must communicate model behavior to a user who needs to understand why the warning level changed. For that reason, the dashboard avoids presenting the probability as a trading recommendation. It frames the output as decision support for academic and risk-monitoring use.
+
+\section{Discussion}
+
+The results support three main observations. First, financial stress is multidimensional. Volatility, drawdown, connectedness, and regime state all provide information that is not captured by price level alone. Second, nonlinear models can improve stress classification, but the gain is not large enough to justify ignoring interpretability. Third, ablation analysis is essential because every additional feature layer should earn its place in the system.
+
+The strongest practical value of NIFTY-Sentinel is its end-to-end structure. A user can trace the system from raw data to engineered features, from features to regimes and connectedness, from model outputs to warning bands, and from warning bands to dashboard explanations. This transparency is especially important for financial machine learning projects because unverified models can easily produce misleading confidence.
+
+\section{Limitations}
+
+The project has several limitations.
+
+\begin{enumerate}
+    \item The current prototype uses exploratory public-market data rather than fully validated official NSE and RBI data.
+    \item The stress label is a modelling construct and should be tested against alternative definitions.
+    \item Thresholds for warning levels are simple and require calibration for real institutional use.
+    \item The model uses historical market proxies and does not include macroeconomic announcements, liquidity microstructure, news sentiment, or option-implied distribution measures beyond volatility proxies.
+    \item The results are based on historical validation and do not prove causal relationships.
+\end{enumerate}
+
+These limitations should be addressed before presenting the system as a final operational risk model. For the current academic project stage, they are acceptable as long as they are explicitly disclosed.
+
+\section{Future Work}
+
+Several extensions would strengthen the project.
+
+\begin{itemize}
+    \item Replace exploratory data with official NSE and RBI data and rerun all notebooks.
+    \item Add Bank NIFTY, sectoral indices, bond yields, and volume-based liquidity features.
+    \item Calibrate warning thresholds using cost-sensitive evaluation.
+    \item Add probability calibration methods such as isotonic regression or Platt scaling.
+    \item Compare Random Forest with XGBoost, LightGBM, and temporal neural models.
+    \item Add automated dashboard refresh and model monitoring.
+    \item Expand case studies with detailed event windows around 2013 taper stress, 2018 IL\&FS stress, 2020 COVID-19, and 2022 inflation tightening.
+\end{itemize}
+
+\section{Conclusion}
+
+NIFTY-Sentinel demonstrates a complete explainable machine learning workflow for Indian equity market stress monitoring. The system combines interpretable financial features, latent regime detection, connectedness measurement, supervised classification, ablation analysis, explanation plots, and dashboard deployment. The prototype results show that the full layered model improves on a market-only baseline and produces a usable stress probability timeline. More importantly, the project establishes a disciplined research structure that avoids treating machine learning as a black box.
+
+The system should be understood as an early-warning intelligence dashboard rather than a trading model. Its value lies in combining multiple signals into an interpretable probability and making the evidence visible through charts. With official data integration and further validation, the framework can become a strong academic demonstration of explainable financial stress modelling for the Indian market.
+
+\begin{thebibliography}{9}
+
+\bibitem[Breiman(2001)]{breiman2001}
+Breiman, L. (2001). Random forests. \textit{Machine Learning}, 45, 5--32.
+
+\bibitem[Hamilton(1989)]{hamilton1989}
+Hamilton, J. D. (1989). A new approach to the economic analysis of nonstationary time series and the business cycle. \textit{Econometrica}, 57(2), 357--384.
+
+\bibitem[Lundberg and Lee(2017)]{lundberg2017}
+Lundberg, S. M., and Lee, S. I. (2017). A unified approach to interpreting model predictions. \textit{Advances in Neural Information Processing Systems}.
+
+\bibitem[Pedregosa et al.(2011)]{pedregosa2011}
+Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., and Duchesnay, E. (2011). Scikit-learn: Machine learning in Python. \textit{Journal of Machine Learning Research}, 12, 2825--2830.
+
+\bibitem[Schwert(1989)]{schwert1989}
+Schwert, G. W. (1989). Why does stock market volatility change over time? \textit{Journal of Finance}, 44(5), 1115--1153.
+
+\end{thebibliography}
+
+\end{document}
