@@ -25,7 +25,9 @@
 \onehalfspacing
 
 \title{\textbf{NIFTY-Sentinel: An Explainable Machine Learning Framework for Early Warning of Indian Equity Market Stress}}
-\author{Deepankar Gupta}
+\author{Deepankar Gupta \quad Dr. Mayura Tapkire\\
+Department of Computer Science and Engineering (AI \& ML),\\
+The National Institute of Engineering, Mysuru, India}
 \date{\today}
 
 \begin{document}
@@ -76,9 +78,39 @@ These objectives shape the full research design. The resulting paper therefore e
 
 \section{Related Work}
 
-Financial stress measurement has a long tradition in empirical finance. Traditional approaches often rely on composite indices built from spreads, volatility, liquidity, and macro-financial variables. Machine learning approaches extend this idea by allowing nonlinear relationships between indicators and stress outcomes. However, financial time series impose constraints that are sometimes ignored in ordinary machine learning workflows. Most importantly, validation must respect time order, feature construction must avoid look-ahead bias, and performance must be interpreted against class imbalance.
+This project is positioned at the intersection of financial stress measurement, Indian equity-market volatility, connectedness analysis, regime detection, and explainable machine learning. The literature from 2020 onward is especially relevant because it covers the COVID-19 shock, the post-pandemic inflation and rate-tightening period, and the increasing use of interpretable machine learning in financial early-warning systems.
 
-Three methodological ideas are especially relevant to this project. First, latent regime models such as Hidden Markov Models can represent unobserved market states that differ in volatility and return behavior. Second, ensemble classifiers such as Random Forests can capture nonlinear interactions between volatility, drawdown, and cross-asset features. Third, explanation tools such as SHAP and feature importance can help translate model behavior into interpretable drivers. NIFTY-Sentinel combines these ideas into one applied pipeline.
+\subsection{Financial Stress Measurement and Early-Warning Systems}
+
+Recent research continues to treat financial stress as a multidimensional condition rather than a single-market event. For India, \citet{sahoo2021indiafsi} constructs a financial stress index using money market, bond market, equity market, foreign exchange market, and banking-sector variables, showing that a composite view is more informative than one isolated indicator. Similarly, \citet{jfep2020indiafsi} evaluates alternative Indian financial stress indicators and finds that stress indices based on time-varying correlation methods, especially DCC-GARCH, are useful for tracing known stress periods and business-cycle weakness. These studies support the central design choice in NIFTY-Sentinel: market stress should be measured through several channels, including equity returns, volatility, currency pressure, and cross-market co-movement.
+
+The broader early-warning literature also emphasizes realistic validation. \citet{samitas2020ml} show that combining financial networks with machine learning can improve crisis-warning performance, while \citet{duprey2022early} caution that pseudo-real-time identification of leading indicators is difficult and that apparently useful signals can become clear only after a crisis has already occurred. \citet{jarmulska2022rf} compares random forests and logit models for fiscal-stress warning and shows that machine learning can be useful, but must be evaluated against transparent benchmarks. \citet{genberg2022banking} use AdaBoost to rank determinants of banking crises across countries, while \citet{tang2024systemic} combine stress indices, Markov regime switching, and interpretable machine learning for systemic-risk prediction. Together, these papers justify the project's use of both a logistic-regression benchmark and a nonlinear random-forest model, with walk-forward validation rather than random train-test splitting.
+
+\subsection{Indian Market Volatility, COVID-19, and Connectedness}
+
+The Indian market literature after 2020 strongly supports the inclusion of volatility and connectedness features. \citet{guru2021covid} examine ten BSE sector indices and find that COVID-19 substantially increased sectoral volatility spillovers in India. \citet{rao2021vulnerability} study NIFTY 50 firms during India's lockdown and post-lockdown phases, documenting the market's vulnerability to pandemic information and investor sentiment. \citet{sahoo2023sectoral} find strong short-run and long-run volatility persistence among Indian sectoral indices during the COVID-19 period, with high time-varying correlations that reduce diversification benefits. \citet{eap2023indiaCommodity} extend the connectedness view to Indian equity and commodity markets, finding that volatility spillovers between Indian equities and major commodities rose after the COVID-19 outbreak. \citet{jrfm2024indiaSpillover} further show that pandemic-era volatility changed spillover patterns between India and major global markets.
+
+These Indian-market findings are consistent with global connectedness studies. \citet{li2021asymmetric} report crisis-sensitive and asymmetric volatility spillovers across major global stock markets, with emerging markets often receiving downside risk during the 2020 crash. \citet{zhang2021oilstock} show that COVID-19 changed return and volatility spillovers between oil and stock markets. \citet{adekoya2021covidconnected} use TVP-VAR and causality-in-quantiles methods to show that pandemic uncertainty drove connectedness across commodity and financial markets. \citet{naeem2021covid} and \citet{sectoral2022us} also document a sharp rise in connectedness during the pandemic. The implication for NIFTY-Sentinel is direct: a rolling connectedness layer is theoretically and empirically justified because stress periods are often marked by stronger cross-asset co-movement.
+
+\subsection{Volatility, Market Fear, and Risk-Appetite Proxies}
+
+NIFTY-Sentinel uses India VIX, USD/INR, gold, crude oil, S\&P 500, and US VIX as risk-appetite and global-risk proxies. This choice is consistent with recent work on market fear and cross-asset stress transmission. \citet{marketfear2021india} study India VIX and historical NIFTY volatility during COVID-19 using machine learning, deep learning, feature selection, and explainable AI, and show that market fear measures can be predicted from macroeconomic, technical, and search-based features. \citet{panga2021oilfsi} connect financial stress to oil-market realized volatility through Markov-regime-switching MIDAS models, which supports the inclusion of commodity variables in stress-monitoring frameworks. \citet{zhang2021oilstock} and \citet{eap2023indiaCommodity} similarly show that crude oil and commodity markets can become important channels of equity-market volatility transmission.
+
+This literature suggests that stress-monitoring models should not rely only on domestic index returns. Risk appetite often deteriorates through implied volatility, exchange-rate pressure, safe-haven demand, commodity shocks, and global equity-market volatility. The project's feature layers therefore follow a defensible empirical pattern: price, volatility, currency, commodity, global risk, connectedness, and regime information are treated as complementary rather than competing inputs.
+
+\subsection{Regime Detection and Explainable Machine Learning}
+
+Recent studies also support the use of latent regimes and explanation tools. \citet{giudici2020hmm} apply Hidden Markov Models to detect bull, stable, and bear regimes in cryptoasset markets, illustrating the usefulness of unobserved-state models for volatile financial series. \citet{dua2021regime} use Markov-switching models to study regime shifts and dynamic linkages across currency and equity markets, including India. \citet{fons2020hmm} develop a dynamic asset-allocation system using feature-saliency Hidden Markov Models, showing that regime identification can be strengthened by feature selection. These papers support the project's use of an HMM regime feature, while also motivating caution: regime labels should be interpreted as compact statistical summaries, not as causal explanations.
+
+The explainable-AI literature is equally relevant. \citet{zhang2022xai} propose an explainable AI framework for financial distress prediction using Shapley additive explanations, partial dependence plots, and counterfactual explanations. \citet{tang2024systemic} use interpretable machine learning to identify influential systemic-risk indicators, and \citet{asoc2023xai} review how explainability can extend financial time-series prediction models. \citet{survey2022fts} survey machine-learning models for financial time-series forecasting and highlight the difficulty of nonlinear, dynamic, and noisy financial data. These findings support the project's decision to report feature importance and SHAP-style explanations alongside performance metrics. For a financial stress dashboard, interpretability is not decorative; it is necessary for users to judge whether a warning is economically plausible.
+
+The same decision-support perspective appears in applied AI studies outside finance. Recent work has used machine learning for food and disease-risk analysis, road navigation, facial emotion and expression recognition, cardiac screening, gluten identification, skin-lesion analysis, diabetes detection, plant-disease detection, remote health monitoring, and cognitive-impairment assessment \citep{tapkire2023food,arun2024road,lavanya2024emotion,shashidhar2025heart,tapkire2025gluten,manjunath2025skin,natesh2025diabetes,lavanya2024facialreview,shwetha2026plant,arpitha2025health,vinesh2026mci,lavanya2026mcipred}. Although these applications do not provide direct evidence about financial stress, they illustrate a common requirement across applied machine-learning systems: model outputs become more useful when they are validated, interpretable, and presented with the limits of the underlying evidence.
+
+\subsection{Research Gap Addressed by NIFTY-Sentinel}
+
+The reviewed literature establishes four facts. First, Indian financial stress is better represented by composite, cross-market indicators than by equity prices alone. Second, COVID-19 and later global shocks increased volatility spillovers and connectedness, especially across equities, commodities, currencies, and global risk proxies. Third, machine-learning early-warning systems can be useful, but their apparent performance must be tested with time-aware validation and transparent benchmarks. Fourth, explainability and regime diagnosis are essential when model outputs are used for financial monitoring.
+
+NIFTY-Sentinel responds to this gap by combining these ideas in one reproducible pipeline for Indian equity-market stress. It does not claim to forecast exact NIFTY 50 prices. Instead, it estimates a forward-looking probability of elevated stress using market-state features, volatility, drawdown, risk-appetite proxies, rolling connectedness, HMM regimes, walk-forward supervised learning, ablation analysis, and explainability outputs. This integrated design is the project's main contribution relative to the recent literature.
 
 \section{Data}
 
@@ -333,7 +365,88 @@ NIFTY-Sentinel demonstrates a complete explainable machine learning workflow for
 
 The system should be understood as an early-warning intelligence dashboard rather than a trading model. Its value lies in combining multiple signals into an interpretable probability and making the evidence visible through charts. With official data integration and further validation, the framework can become a strong academic demonstration of explainable financial stress modelling for the Indian market.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
+
+\bibitem[Al-Awadhi et al.(2020)]{alawadhi2020covid}
+Al-Awadhi, A. M., Alsaifi, K., Al-Awadhi, A., and Alhammadi, S. (2020). Death and contagious infectious diseases: Impact of the COVID-19 virus on stock market returns. \textit{Journal of Behavioral and Experimental Finance}, 27, 100326.
+
+\bibitem[An et al.(2022)]{genberg2022banking}
+An, Z., Genberg, H., and Yu, X. (2022). A machine learning approach to rank the determinants of banking crises over time and across countries. \textit{Journal of International Money and Finance}, 129, 102739.
+
+\bibitem[Dua and Tuteja(2021)]{dua2021regime}
+Dua, P., and Tuteja, D. (2021). Regime shifts in the behaviour of international currency and equity markets: A Markov-switching analysis. \textit{Journal of Quantitative Economics}, 19(Suppl. 1), 309--336.
+
+\bibitem[Duprey and Klaus(2022)]{duprey2022early}
+Duprey, T., and Klaus, B. (2022). Early warning or too late? A (pseudo-)real-time identification of leading indicators of financial stress. \textit{Journal of Banking \& Finance}, 138, 106196.
+
+\bibitem[Fons et al.(2020)]{fons2020hmm}
+Fons, E., Dawson, P., Yau, J., Zeng, X.-J., and Keane, J. (2020). A novel dynamic asset allocation system using Feature Saliency Hidden Markov models for smart beta investing. \textit{Expert Systems with Applications}, 163, 113720.
+
+\bibitem[Giudici and Abu Hashish(2020)]{giudici2020hmm}
+Giudici, P., and Abu Hashish, I. (2020). A hidden Markov model to detect regime changes in cryptoasset markets. \textit{Quality and Reliability Engineering International}, 36(6), 2057--2065.
+
+\bibitem[Guru and Das(2021)]{guru2021covid}
+Guru, B. K., and Das, A. (2021). COVID-19 and uncertainty spillovers in Indian stock market. \textit{MethodsX}, 8, 101199.
+
+\bibitem[Ilesanmi and Tewari(2020)]{ilesanmi2020southafrica}
+Ilesanmi, K. D., and Tewari, D. D. (2020). Financial stress index and economic activity in South Africa: New evidence. \textit{Economies}, 8(4), 110.
+
+\bibitem[Jarmulska(2022)]{jarmulska2022rf}
+Jarmulska, B. (2022). Random forest versus logit models: Which offers better early warning of fiscal stress? \textit{Journal of Forecasting}, 41(4), 803--826.
+
+\bibitem[Li(2021)]{li2021asymmetric}
+Li, W. (2021). COVID-19 and asymmetric volatility spillovers across global stock markets. \textit{The North American Journal of Economics and Finance}, 58, 101474.
+
+\bibitem[Naeem et al.(2021)]{naeem2021covid}
+Naeem, M. A., Sehrish, S., and Costa, M. D. (2021). COVID-19 pandemic and connectedness across financial markets. \textit{Pacific Accounting Review}, 33(2), 165--178.
+
+\bibitem[Pang et al.(2021)]{panga2021oilfsi}
+Pang, D., Ma, F., Wahab, M. I. M., and Zhu, B. (2021). Financial stress and oil market volatility: New evidence. \textit{Applied Economics Letters}. Published online 24 August 2021.
+
+\bibitem[Rao et al.(2021)]{rao2021vulnerability}
+Rao, P., Goyal, N., Kumar, S., Hassan, M. K., and Shahimi, S. (2021). Vulnerability of financial markets in India: The contagious effect of COVID-19. \textit{Research in International Business and Finance}, 58, 101462.
+
+\bibitem[Sahoo(2021)]{sahoo2021indiafsi}
+Sahoo, J. (2021). Financial stress index, growth and price stability in India: Some recent evidence. \textit{Transnational Corporations Review}, 13(2), 222--236.
+
+\bibitem[Sahoo and Kumar(2023)]{sahoo2023sectoral}
+Sahoo, S., and Kumar, S. (2023). Volatility spillover among the sectoral indices of the Indian capital market: Evidence from the COVID period. \textit{Indian Journal of Finance}, 17(9).
+
+\bibitem[Samitas et al.(2020)]{samitas2020ml}
+Samitas, A., Kampouris, E., and Kenourgios, D. (2020). Machine learning as an early warning system to predict financial crisis. \textit{International Review of Financial Analysis}, 71, 101507.
+
+\bibitem[Tang et al.(2024)]{tang2024systemic}
+Tang, P., Tang, T., and Lu, C. (2024). Predicting systemic financial risk with interpretable machine learning. \textit{The North American Journal of Economics and Finance}, 71, 102088.
+
+\bibitem[Adekoya and Oliyide(2021)]{adekoya2021covidconnected}
+Adekoya, O. B., and Oliyide, J. A. (2021). How COVID-19 drives connectedness among commodity and financial markets: Evidence from TVP-VAR and causality-in-quantiles techniques. \textit{Resources Policy}, 70, 101898.
+
+\bibitem[Wang et al.(2021)]{sectoral2022us}
+Wang, Z., Yao, C., and Li, X. (2022). Sectoral connectedness: New evidence from US stock market during COVID-19 pandemics. \textit{Finance Research Letters}, 45, 102124.
+
+\bibitem[Tang et al.(2022)]{survey2022fts}
+Tang, Y., Song, Z., Zhu, Y., Yuan, H., Hou, M., Ji, J., Tang, C., and Li, J. (2022). A survey on machine learning models for financial time series forecasting. \textit{Neurocomputing}, 512, 363--380.
+
+\bibitem[Zhang and Hamori(2021)]{zhang2021oilstock}
+Zhang, W., and Hamori, S. (2021). Crude oil market and stock markets during the COVID-19 pandemic: Evidence from the US, Japan, and Germany. \textit{International Review of Financial Analysis}, 74, 101702.
+
+\bibitem[Zhang et al.(2022)]{zhang2022xai}
+Zhang, Z., Wu, C., Qu, S., and Chen, X. (2022). An explainable artificial intelligence approach for financial distress prediction. \textit{Information Processing \& Management}, 59(4), 102988.
+
+\bibitem[Zhang et al.(2023)]{asoc2023xai}
+Zhang, Y., Li, X., and Guo, S. (2023). Extending machine learning prediction capabilities by explainable AI in financial time series prediction. \textit{Applied Soft Computing}, 132, 109876.
+
+\bibitem[Lu et al.(2023)]{eap2023indiaCommodity}
+Lu, R., Xu, W., Zeng, H., and Zhou, X. (2023). Volatility connectedness among the Indian equity and major commodity markets under the COVID-19 scenario. \textit{Economic Analysis and Policy}, 78, 1465--1481.
+
+\bibitem[Maharana et al.(2024)]{jrfm2024indiaSpillover}
+Maharana, N., Panigrahi, A. K., and Chaudhury, S. K. (2024). Volatility persistence and spillover effects of Indian market in the global economy: A pre- and post-pandemic analysis using VAR-BEKK-GARCH model. \textit{Journal of Risk and Financial Management}, 17(7), 294.
+
+\bibitem[Ghosh and Sanyal(2021)]{marketfear2021india}
+Ghosh, I., and Sanyal, M. K. (2021). Introspecting predictability of market fear in Indian context during COVID-19 pandemic: An integrated approach of applied predictive modelling and explainable AI. \textit{International Journal of Information Management Data Insights}, 1(2), 100039.
+
+\bibitem[Mundra and Bicchal(2020)]{jfep2020indiafsi}
+Mundra, S., and Bicchal, M. (2020). Evaluating financial stress indicators: Evidence from Indian data. \textit{Journal of Financial Economic Policy}, 13(1), 116--135.
 
 \bibitem[Breiman(2001)]{breiman2001}
 Breiman, L. (2001). Random forests. \textit{Machine Learning}, 45, 5--32.
@@ -349,6 +462,42 @@ Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O.,
 
 \bibitem[Schwert(1989)]{schwert1989}
 Schwert, G. W. (1989). Why does stock market volatility change over time? \textit{Journal of Finance}, 44(5), 1115--1153.
+
+\bibitem[Tapkire and Arun(2023)]{tapkire2023food}
+Tapkire, M. D., and Arun, V. (2023). Application of artificial intelligence to correlate food formulations to disease risk prediction: A comprehensive review. \textit{Journal of Food Science and Technology}, 60(9), 2350--2357. doi:10.1007/s13197-022-05550-w.
+
+\bibitem[Arun et al.(2024)]{arun2024road}
+Arun, V., Shashikala, B. M., Vani, H. Y., Tapkire, M., Anusuya, M. A., and Lavanya, M. S. (2024). Object detection using TensorFlow for road navigation: Enhancing safety for the visually impaired. In \textit{International Conference Summit on Artificial Intelligence}, 209--220. Springer. doi:10.1007/978-981-97-7592-7\_17.
+
+\bibitem[Lavanya et al.(2024a)]{lavanya2024emotion}
+Lavanya, M. S., Arun, V., Tapkire, M., and Suhaas, K. P. (2024). Transfer learning based facial emotion recognition. \textit{SN Computer Science}, 6(1), 35. doi:10.1007/s42979-024-03523-8.
+
+\bibitem[Shashidhar et al.(2025)]{shashidhar2025heart}
+Shashidhar, R., Vasishta, P., Hegde, A., Madhura, J., Roopa, M., and Tapkire, M. D. (2025). Early detection of heart blockages: The power of AI and feedforward neural networks. In \textit{2025 International Conference on Electronics, Computing, Communication and Control Technology}, 1--6. IEEE. doi:10.1109/ICECCC65144.2025.11064297.
+
+\bibitem[Tapkire et al.(2025)]{tapkire2025gluten}
+Tapkire, M., Arun, V., Lavanya, M. S., and Shashidhar, R. (2025). Gluten identification from food images using advanced deep learning and transfer learning methods. \textit{Journal of Food Science and Technology}, 62(6), 1164--1172. doi:10.1007/s13197-024-06158-y.
+
+\bibitem[Manjunath et al.(2025)]{manjunath2025skin}
+Manjunath, A. S., Shashidhar, R., Shashank, M. P., Tapkire, M., Roopa, M., and Kruthika, S. (2025). Advancing dermatological AI: A unified deep learning pipeline for skin lesion analysis. In \textit{2025 2nd Asia Pacific Conference on Innovation in Technology}, 1--7. IEEE. doi:10.1109/APCIT65661.2025.11410765.
+
+\bibitem[Natesh et al.(2025)]{natesh2025diabetes}
+Natesh, M., Ranjan Kumar, H. S., Vinutha, K., Tapkire, M., Sulthana, S., Swetha, K. R., and Bharath, K. N. (2025). Improved diabetes detection through integration of external risk factors and machine learning techniques. \textit{SN Computer Science}, 6(8), 1--18. doi:10.1007/s42979-025-04486-0.
+
+\bibitem[Lavanya et al.(2024b)]{lavanya2024facialreview}
+Lavanya, M. S., Arun, V., Tapkire, M., and Shichkina, Y. (2024). A review on facial expression recognition approaches, datasets and technologies. In \textit{International Conference on Intelligent Systems}, 53--68. Springer Nature Switzerland. doi:10.1007/978-3-032-04764-9\_5.
+
+\bibitem[Shwetha et al.(2026)]{shwetha2026plant}
+Shwetha, K. S., Ramji, B. R., Ujwal, U. J., Tapkire, M., Magi, S. M., and Madalgi, J. (2026). Deep learning applications in automated detection of plant diseases across diverse crops. \textit{Journal of Integrated Science and Technology}, 14(4), 1553. doi:10.62110/sciencein.jist.2026.v14.1553.
+
+\bibitem[Arpitha et al.(2025)]{arpitha2025health}
+Arpitha, T., Shashidhar, R., Pruthvi, C. N., Tapkire, M., and Meghana, J. (2025). A PSO-fuzzy approximate reasoning model for decision support in remote health monitoring. In \textit{International Conference on Soft Computing and its Engineering Applications}, 382--394. Springer Nature Switzerland. doi:10.1063/5.0331506.
+
+\bibitem[Vinesh et al.(2026)]{vinesh2026mci}
+Vinesh, T., Lavanya, M. S., Arun, V., Juremi, J., Tapkire, M., Shashikala, B. M., and Fatin, A. M. S. (2026). AI-powered assessments for mild cognitive impairment detection: A comprehensive review. In \textit{AIP Conference Proceedings}, 3440(1), 020038. AIP Publishing. doi:10.1063/5.0331506.
+
+\bibitem[Lavanya et al.(2026)]{lavanya2026mcipred}
+Lavanya, M. S., Arun, V., Tapkire, M., Vanamala, C. K., Padma, M. T., Naganna, M., and Prakash, V. (2026). Hybrid optimization-based machine learning framework for predicting mild cognitive impairment progression. \textit{International Journal of Computer Information Systems and Industrial Management Applications}, 18(2), 203--214.
 
 \end{thebibliography}
 
